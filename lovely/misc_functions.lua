@@ -193,6 +193,22 @@ function create_drag_target_from_card(_card)
                             end),
                         })
                         needs_areas = false
+                    elseif _card.ability.set == 'Auxiliary' then
+                        drag_target({
+                            cover        = G.DRAG_TARGETS.P_select,
+                            colour       = adjust_alpha(G.C.GREEN, 0.9),
+                            text         = { localize('b_select') },
+                            card         = _card,
+                            active_check = function(other)
+                                return sticky_can_take_card(other)
+                            end,
+                            release_func = function(other)
+                                if sticky_can_take_card(other) then
+                                    G.FUNCS.take_card({ config = { ref_table = other } })
+                                end
+                            end,
+                        })
+                        needs_areas = false
                     end
 
                     if is_consumeable_card_in_crazy_reverie_pack and needs_areas then
@@ -414,5 +430,11 @@ end
 sticky_can_select_crazy_card = function(_card)
     local temp_config = { UIBox = { states = { visible = false } }, config = { ref_table = _card } }
     G.FUNCS.can_select_crazy_card(temp_config)
+    return temp_config.config.button ~= nil;
+end
+
+sticky_can_take_card = function(_card)
+    local temp_config = { UIBox = { states = { visible = false } }, config = { ref_table = _card } }
+    G.FUNCS.can_take_card(temp_config)
     return temp_config.config.button ~= nil;
 end
