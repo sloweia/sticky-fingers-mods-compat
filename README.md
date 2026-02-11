@@ -1,3 +1,21 @@
+Messy fork of original mod to support some content mods. I made it last year, but now I'll try to update some things and finally share it with the world. 
+I'm not really a good coder, so it's mostly complicated if statements, but I didn't notice any performance hits or crashes.
+
+# Mods supported:
+Ortalab
+Maximus (currently broken)
+Redux Arcanum
+Revirie (Alters mod's intended behaviour for crazy packs by allowing to use some straightaway)
+ArtBox
+UnStable
+Sacrpot (Need testing)
+Lucky Rabbit (Need testing)
+
+Currently I need to fix negative consumables in packs, they should ignore slot limit.
+
+Merged @TinyDerp's pull to add config to hide action buttons.
+
+
 # Sticky Fingers
 
 A mod that brings "touch" controls to Balatro on PC/Mac, making it a bit more fun to play on desktop and improving the experience on touch-based PCs like the Steam Deck! The default mouse controls are kept intact.
