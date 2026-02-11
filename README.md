@@ -5,7 +5,7 @@ I'm not really a good coder, so it's mostly complicated if statements, but I did
 - Ortalab
 - Maximus (currently broken)
 - Redux Arcanum
-- Revirie (Alters mod's intended behaviour for crazy packs by allowing to use some straightaway)
+- Revirie (Alters mod's intended behaviour for crazy packs by allowing to use some cards straightaway)
 - ArtBox
 - UnStable
 - Sacrpot (Need testing)
