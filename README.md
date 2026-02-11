@@ -13,7 +13,7 @@ I'm not really a good coder, so it's mostly complicated if statements, but I did
 
 Currently I need to fix negative consumables in packs, they should ignore slot limit.
 
-Merged @TinyDerp's pull to add config to hide action buttons.
+Merged [TinyDerp's pull reqeust](https://github.com/TinyDerp/sticky-fingers/tree/main) to add config to hide action buttons.
 
 
 # Sticky Fingers
