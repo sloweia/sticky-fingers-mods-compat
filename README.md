@@ -1,5 +1,5 @@
-Messy fork of original mod to support some content mods. I made it last year, but now I'll try to update some things and finally share it with the world. 
-I'm not really a good coder, so it's mostly complicated if statements, but I didn't notice any performance hits or crashes.
+**Messy fork of original mod to support some content mods. I made it last year, but now I'll try to update some things and finally share it with the world. 
+I'm not really a good coder, so it's mostly complicated if statements, but I didn't notice any performance hits or crashes.**
 
 # Mods supported
 - Ortalab
