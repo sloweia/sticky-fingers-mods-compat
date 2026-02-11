@@ -15,7 +15,7 @@ Currently I need to fix negative consumables in packs, they should ignore slot l
 
 Merged [TinyDerp's pull reqeust](https://github.com/TinyDerp/sticky-fingers/tree/main) to add config to hide action buttons.
 
-
+---***___
 # Sticky Fingers
 
 A mod that brings "touch" controls to Balatro on PC/Mac, making it a bit more fun to play on desktop and improving the experience on touch-based PCs like the Steam Deck! The default mouse controls are kept intact.
