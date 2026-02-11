@@ -5,7 +5,7 @@ I'm not really a good coder, so it's mostly complicated if statements, but I did
 - [Ortalab](https://github.com/EremelMods/Ortalab)
 - [Maximus](https://github.com/the-Astra/Maximus) (currently broken)
 - [Redux Arcanum](https://github.com/jumbocarrot0/Redux-Arcanum)
-- [Reverie](https://github.com/jumbocarrot0/reverie) (Alters mod's intended behaviour for crazy packs by allowing to use some cards straightaway)
+- [Reverie](https://github.com/jumbocarrot0/reverie) (Pre 1.5.4c)(Alters mod's intended behaviour for crazy packs by allowing to use some cards straightaway)
 - [ArtBox](https://github.com/SadCubeArt/ArtBox)
 - [UnStable](https://github.com/kirbio/UnStable)
 - [Sacrpot](https://github.com/SarcPot/sarcpot-mod) (Need testing)
