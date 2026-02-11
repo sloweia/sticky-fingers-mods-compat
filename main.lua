@@ -30,6 +30,16 @@ DTM.config_tab = function()
         callback = function()
           DTM:save_config()
         end,
+      }),
+      create_toggle({
+        id = "disable_action_buttons",
+        label = "Disable action buttons",
+        info = { "Removes the action buttons from the PC version of the game." },
+        ref_table = DTM.config,
+        ref_value = "disable_action_buttons",
+        callback = function()
+          DTM:save_config()
+        end
       })
     }
   }
