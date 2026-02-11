@@ -2,14 +2,14 @@
 I'm not really a good coder, so it's mostly complicated if statements, but I didn't notice any performance hits or crashes.**
 
 # Mods supported
-- Ortalab
-- Maximus (currently broken)
-- Redux Arcanum
-- Revirie (Alters mod's intended behaviour for crazy packs by allowing to use some cards straightaway)
-- ArtBox
-- UnStable
-- Sacrpot (Need testing)
-- Lucky Rabbit (Need testing)
+- [Ortalab](https://github.com/EremelMods/Ortalab)
+- [Maximus](https://github.com/the-Astra/Maximus) (currently broken)
+- [Redux Arcanum](https://github.com/jumbocarrot0/Redux-Arcanum)
+- [Reverie](https://github.com/jumbocarrot0/reverie) (Alters mod's intended behaviour for crazy packs by allowing to use some cards straightaway)
+- [ArtBox](https://github.com/SadCubeArt/ArtBox)
+- [UnStable](https://github.com/kirbio/UnStable)
+- [Sacrpot](https://github.com/SarcPot/sarcpot-mod) (Need testing)
+- [Lucky Rabbit](https://github.com/Trif3ctal/Lucky-Rabbit) (Need testing)
 
 Currently I need to fix negative consumables in packs, they should ignore slot limit.
 
