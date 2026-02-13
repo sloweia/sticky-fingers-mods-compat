@@ -6,7 +6,7 @@ function drag_target(args)
   args.emboss = args.emboss or nil
   args.active_check = args.active_check or (function(other) return true end)
   args.release_func = args.release_func or (function(other) G.DEBUG_VALUE = 'WORKIN' end)
-  args.text_colour = copy_table(G.C.WHITE)
+  args.text_colour = copy_table(args.text_colour or G.C.WHITE)
   args.uibox_config = {
     align = args.align or 'tli',
     offset = args.offset or { x = 0, y = 0 },

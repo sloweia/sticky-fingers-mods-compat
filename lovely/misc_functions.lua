@@ -1,3 +1,22 @@
+---debug delete on release---
+local success, dpAPI = pcall(require, "debugplus-api")
+
+local logger = { -- Placeholder logger, for when DebugPlus isn't available
+    log = print,
+    debug = print,
+    info = print,
+    warn = print,
+    error = print
+}
+
+if success and dpAPI.isVersionCompatible(1) then -- Make sure DebugPlus is available and compatible
+    local debugplus = dpAPI.registerID("eramdam.sticky-fingers")
+    logger = debugplus.logger -- Provides the logger object
+end
+
+logger.log("DebugPlus sticky-fingers logger")
+---debug delete on release---
+
 debug_current_card = {}
 function create_drag_target_from_card(_card)
     if _card and G.STAGE == G.STAGES.RUN then
@@ -6,6 +25,8 @@ function create_drag_target_from_card(_card)
         -- Category definitions --
         local is_planet = _card.ability.set == 'Planet'
         local is_spectral = _card.ability.set == 'Spectral'
+        local is_mythos = _card.ability.set == 'ortalab_mythos'
+        local is_corpus = _card.ability.set == 'ortalab_mythos' and _card.config.center.key == 'c_ortalab_corpus'
         local is_zodiac = _card.ability.set == 'ortalab_zodiac'
         local is_collectable = _card.ability.set == 'collectable'
         local is_horoscope = _card.ability.set == 'Horoscope' or _card.config.center.key == 'c_mxms_ophiucus'  
@@ -28,6 +49,7 @@ function create_drag_target_from_card(_card)
             P_save = Moveable { T = { x = G.play.T.x, y = G.play.T.y - 2, w = G.play.T.w, h = G.play.T.h + 1 } },
             -- Prism's "double cards" have a "Switch" button
             P_switch = Moveable { T = { x = G.deck.T.x + 0.2, y = G.deck.T.y - 5.1, w = G.deck.T.w - 0.1, h = 4.5 } },
+            O_sacrifice = Moveable { T = { x = G.jokers.T.x, y = G.jokers.T.y - 0.2, w = G.jokers.T.w, h = G.jokers.T.h + 0.6 } },
         }
 
         if DTM.config.vanilla_joker_sell == false then
@@ -104,180 +126,154 @@ function create_drag_target_from_card(_card)
 
             -- is the card in a pack?
             if _card.area == G.pack_cards then
-                local is_consumeable_card_in_crazy_reverie_pack = Reverie and SMODS.OPENED_BOOSTER.label == 'Pack' and _card.ability.consumeable and _card.area == G.pack_cards
-
-                -- Reverie crazy pack override for universal-ish mod compact
-                if is_consumeable_card_in_crazy_reverie_pack then
-                            drag_target({
-                                cover = G.DRAG_TARGETS.P_select,
-                                colour = adjust_alpha( G.C.GREEN, 0.9),
-                                text = { localize('b_select') },
-                                card = _card,
-                                active_check = (function(other)
-                                    if is_zodiac or is_planet or is_auxiliary_use and (G.consumeables.config.card_limit > #G.consumeables.cards or (_card.edition and _card.edition.negative)) then
-                                        return other:can_use_consumeable()
-                                    elseif G.consumeables.config.card_limit > #G.consumeables.cards or is_collectable 
-                                    or is_horoscope and (G.mxms_horoscope.config.card_limit > #G.mxms_horoscope.cards or _card.edition and _card.edition.negative) 
-                                    or is_cine and (G.cine_quests.config.card_limit > #G.cine_quests.cards or _card.edition and _card.edition.negative) then
-                                        return sticky_can_select_card(other)
-                                    end
-                                end),
-                                release_func = (function(other)
-                                    if other:can_use_consumeable() then
-                                        G.FUNCS.use_card({ config = { ref_table = other } })
-                                    elseif sticky_can_select_card(other) then
-                                        G.FUNCS.use_card({ config = { ref_table = other } }) --Changed take to use
-                                    end
-                                end)
-                            })
-                else
+            local is_consumeable_card_in_crazy_reverie_pack = Reverie and SMODS.OPENED_BOOSTER.label == 'Pack' and _card.ability.consumeable and _card.area == G.pack_cards
                 -- is the card a consumeable?
                 -- rewrite this mess
-                    if _card.ability.consumeable then
-                        local draw_use_drag_target = function()
-                            drag_target({
-                                cover = ((is_planet or is_horoscope or is_auxiliary or is_zodiac or is_collectable or is_alchemical or is_cine or is_spectral) and G.DRAG_TARGETS.P_select) or G.DRAG_TARGETS.C_use,
-                                colour = adjust_alpha (((is_planet or is_horoscope or (is_auxiliary and not is_auxiliary_use) or is_collectable or is_alchemical or is_cine or is_spectral) and G.C.GREEN) or G.C.RED, 0.9),
-                                text = { (((is_horoscope or (is_auxiliary and not is_auxiliary_use) or is_collectable or is_alchemical or is_cine) or is_spectral) and localize('b_select')) or localize('b_use') },
-                                card = _card,
-                                active_check = (function(other)
-                                    if ((is_alchemical or is_auxiliary or (is_spectral and not is_horoscope)) and (G.consumeables.config.card_limit > #G.consumeables.cards or (_card.edition and _card.edition.negative))) 
-                                    or is_collectable or (is_horoscope and (G.mxms_horoscope.config.card_limit > #G.mxms_horoscope.cards or _card.edition and _card.edition.negative)) 
-                                    or (is_cine and (G.cine_quests.config.card_limit > #G.cine_quests.cards or _card.edition and _card.edition.negative)) then
-                                        return sticky_can_select_card(other)
-                                    elseif not (_card.config.center.key == 'c_unstb_aux_random') then
-                                        return other:can_use_consumeable()
-                                    end
-                                end),
-                                release_func = (function(other)
-                                    if other:can_use_consumeable() then
-                                        G.FUNCS.use_card({ config = { ref_table = other } })
-                                    elseif (is_alchemical or is_auxiliary or is_collectable or is_spectral or is_horoscope or is_cine) and sticky_can_select_card(other) then
-                                        G.FUNCS.use_card({ config = { ref_table = other } }) --Changed take to use
-                                    end
-                                end)
-                            })
-                        end
-
-                        local needs_areas = true
-                        -- Pokermon has a "Super Rod" voucher that lets the player save any consumeable from packs and not just Energy/Item cards.
-                        local pokermon_has_save_all = G.GAME.poke_save_all and not SMODS.OPENED_BOOSTER.label:find("Wish")
-
-                        -- Cryptid's "Code" cards inside packs.
-                        if Cryptid and _card.ability.consumeable and _card.ability.set == 'Code' then
-                            draw_use_drag_target()
-                            -- "Pull" drag target ("use" area is already covered above)
-                            drag_target({
-                                cover = G.DRAG_TARGETS.P_save,
-                                colour = adjust_alpha(G.C.GREEN, 0.9),
-                                text = { localize('b_pull') },
-                                card = _card,
-                                active_check = (function(other)
-                                    return sticky_can_reserve_card(other)
-                                end),
-                                release_func = (function(other)
-                                    if sticky_can_reserve_card(other) then
-                                        G.FUNCS.reserve_card({ config = { ref_table = other } })
-                                    end
-                                end)
-                            })
-                            needs_areas = false
-                            -- Pokermon Item/Energy cards inside packs.
-                        elseif pokermon and _card.ability.consumeable and (_card.ability.set == 'Energy' or _card.ability.set == 'Item' or pokermon_has_save_all) then
-                            if not is_consumeable_card_in_crazy_reverie_pack then
-                                if not pokermon_has_save_all then
-                                    draw_use_drag_target()
-                                else
-                                    drag_target({
-                                        cover = G.DRAG_TARGETS.C_use,
-                                        colour = adjust_alpha((is_planet and G.C.GREEN) or G.C.RED, 0.9),
-                                        text = { localize('b_use') },
-                                        card = _card,
-                                        active_check = (function(other)
-                                            return other:can_use_consumeable()
-                                        end),
-                                        release_func = (function(other)
-                                            if other:can_use_consumeable() then
-                                                G.FUNCS.use_card({ config = { ref_table = other } })
-                                            end
-                                        end)
-                                    })
+                if _card.ability.consumeable then
+                    local draw_use_drag_target = function()
+                        drag_target({
+                            cover = ((is_planet or is_horoscope or is_auxiliary or is_mythos or is_zodiac or is_collectable or is_alchemical or is_cine or is_spectral) and G.DRAG_TARGETS.P_select) or G.DRAG_TARGETS.C_use,
+                            colour = adjust_alpha (((is_horoscope or (is_auxiliary and not is_auxiliary_use) or is_mythos or is_collectable or is_alchemical or is_cine or is_spectral) and G.C.GREEN) or G.C.RED, 0.9),
+                            text = { (((is_horoscope or (is_auxiliary and not is_auxiliary_use) or is_mythos or is_collectable or is_alchemical or is_cine) or is_spectral) and localize('b_select')) or localize('b_use') },
+                            card = _card,
+                            active_check = (function(other)
+                                if ((is_alchemical or is_auxiliary or is_mythos or (is_spectral and not is_horoscope)) and (G.consumeables.config.card_limit > #G.consumeables.cards or (_card.edition and _card.edition.negative))) 
+                                or is_collectable or (is_horoscope and (G.mxms_horoscope.config.card_limit > #G.mxms_horoscope.cards or _card.edition and _card.edition.negative)) 
+                                or (is_cine and (G.cine_quests.config.card_limit > #G.cine_quests.cards or _card.edition and _card.edition.negative)) then
+                                    return sticky_can_select_card(other)
+                                elseif not (_card.config.center.key == 'c_unstb_aux_random') and not is_mythos then
+                                    return other:can_use_consumeable()
                                 end
+                            end),
+                            release_func = (function(other)
+                                if other:can_use_consumeable() then
+                                    G.FUNCS.use_card({ config = { ref_table = other } })
+                                elseif (is_alchemical or is_auxiliary or is_mythos or is_collectable or is_spectral or is_horoscope or is_cine) and sticky_can_select_card(other) then
+                                    G.FUNCS.use_card({ config = { ref_table = other } })
+                                end
+                            end)
+                        })
+                    end
 
-                                -- "Save" drag target ("use" target is already covered above)
+                    local needs_areas = true
+                    -- Pokermon has a "Super Rod" voucher that lets the player save any consumeable from packs and not just Energy/Item cards.
+                    local pokermon_has_save_all = G.GAME.poke_save_all and not SMODS.OPENED_BOOSTER.label:find("Wish")
+
+                    -- Cryptid's "Code" cards inside packs.
+                    if Cryptid and _card.ability.consumeable and _card.ability.set == 'Code' then
+                        draw_use_drag_target()
+                        -- "Pull" drag target ("use" area is already covered above)
+                        drag_target({
+                            cover = G.DRAG_TARGETS.P_save,
+                            colour = adjust_alpha(G.C.GREEN, 0.9),
+                            text = { localize('b_pull') },
+                            card = _card,
+                            active_check = (function(other)
+                                return sticky_can_reserve_card(other)
+                            end),
+                            release_func = (function(other)
+                                if sticky_can_reserve_card(other) then
+                                    G.FUNCS.reserve_card({ config = { ref_table = other } })
+                                end
+                            end)
+                        })
+                        needs_areas = false
+                        -- Pokermon Item/Energy cards inside packs.
+                    elseif pokermon and _card.ability.consumeable and (_card.ability.set == 'Energy' or _card.ability.set == 'Item' or pokermon_has_save_all) then
+                        if not is_consumeable_card_in_crazy_reverie_pack then
+                            if not pokermon_has_save_all then
+                                draw_use_drag_target()
+                            else
                                 drag_target({
-                                    cover        = G.DRAG_TARGETS.P_save,
-                                    colour       = adjust_alpha(
-                                        pokermon_has_save_all and G.C.GREEN or G.ARGS.LOC_COLOURS.pink, 0.9),
-                                    text         = { localize('b_save') },
-                                    card         = _card,
-                                    active_check = function(other)
-                                        return sticky_can_reserve_card(other)
-                                    end,
-                                    release_func = function(other)
-                                        if sticky_can_reserve_card(other) then
-                                            G.FUNCS.reserve_card({ config = { ref_table = other } })
-                                        end
-                                    end,
-                                })
-                                needs_areas = false
-                            end
-                            
-                        elseif needs_areas then
-                            draw_use_drag_target()
-                        end
-                    else
-                        -- Bunco: Blind 'cards' in packs
-                        if BUNCOMOD and _card.ability.blind_card then
-                            drag_target({
-                                cover = G.DRAG_TARGETS.P_select,
-                                colour = adjust_alpha(G.C.GREEN, 0.9),
-                                text = { localize('b_select') },
-                                card = _card,
-                                active_check = (function(other)
-                                    return sticky_can_use_blind_card(other)
-                                end),
-                                release_func = (function(other)
-                                    if sticky_can_use_blind_card(other) then
-                                        G.FUNCS.use_blind_card({ config = { ref_table = other } })
-                                    end
-                                end)
-                            })
-                        elseif is_consumeable_card_in_crazy_reverie_pack then
-                            if G.consumeables.config.card_limit > #G.consumeables.cards then
-                                drag_target({
-                                    cover = G.DRAG_TARGETS.P_select,
-                                    colour = adjust_alpha(G.C.GREEN, 0.9),
-                                    text = { localize('b_select') },
+                                    cover = G.DRAG_TARGETS.C_use,
+                                    colour = adjust_alpha((is_planet and G.C.GREEN) or G.C.RED, 0.9),
+                                    text = { localize('b_use') },
                                     card = _card,
                                     active_check = (function(other)
-                                        return sticky_can_select_crazy_card(other)
+                                        return other:can_use_consumeable()
                                     end),
                                     release_func = (function(other)
-                                        if sticky_can_select_crazy_card(other) then
-                                            G.FUNCS.use_card({ config = { ref_table = other } }) --Changed take to use
+                                        if other:can_use_consumeable() then
+                                            G.FUNCS.use_card({ config = { ref_table = other } })
                                         end
                                     end)
                                 })
                             end
-                        else
+
+                            -- "Save" drag target ("use" target is already covered above)
+                            drag_target({
+                                cover        = G.DRAG_TARGETS.P_save,
+                                colour       = adjust_alpha(
+                                    pokermon_has_save_all and G.C.GREEN or G.ARGS.LOC_COLOURS.pink, 0.9),
+                                text         = { localize('b_save') },
+                                card         = _card,
+                                active_check = function(other)
+                                    return sticky_can_reserve_card(other)
+                                end,
+                                release_func = function(other)
+                                    if sticky_can_reserve_card(other) then
+                                        G.FUNCS.reserve_card({ config = { ref_table = other } })
+                                    end
+                                end,
+                            })
+                            needs_areas = false
+                        end
+                        
+                    elseif needs_areas then
+                        draw_use_drag_target()
+                    end
+                else
+                    -- Bunco: Blind 'cards' in packs
+                    if BUNCOMOD and _card.ability.blind_card then
+                        drag_target({
+                            cover = G.DRAG_TARGETS.P_select,
+                            colour = adjust_alpha(G.C.GREEN, 0.9),
+                            text = { localize('b_select') },
+                            card = _card,
+                            active_check = (function(other)
+                                return sticky_can_use_blind_card(other)
+                            end),
+                            release_func = (function(other)
+                                if sticky_can_use_blind_card(other) then
+                                    G.FUNCS.use_blind_card({ config = { ref_table = other } })
+                                end
+                            end)
+                        })
+                    elseif is_consumeable_card_in_crazy_reverie_pack then
+                        if G.consumeables.config.card_limit > #G.consumeables.cards then
                             drag_target({
                                 cover = G.DRAG_TARGETS.P_select,
                                 colour = adjust_alpha(G.C.GREEN, 0.9),
                                 text = { localize('b_select') },
                                 card = _card,
                                 active_check = (function(other)
-                                    return sticky_can_select_card(other)
+                                    return sticky_can_select_crazy_card(other)
                                 end),
                                 release_func = (function(other)
-                                    if sticky_can_select_card(other) then
+                                    if sticky_can_select_crazy_card(other) then
                                         G.FUNCS.use_card({ config = { ref_table = other } })
                                     end
                                 end)
                             })
                         end
+                    else
+                        drag_target({
+                            cover = G.DRAG_TARGETS.P_select,
+                            colour = adjust_alpha(G.C.GREEN, 0.9),
+                            text = { localize('b_select') },
+                            card = _card,
+                            active_check = (function(other)
+                                return sticky_can_select_card(other)
+                            end),
+                            release_func = (function(other)
+                                if sticky_can_select_card(other) then
+                                    G.FUNCS.use_card({ config = { ref_table = other } })
+                                end
+                            end)
+                        })
                     end
                 end
+                
             end
 
             local draw_consumeable_use_target = function()
@@ -311,7 +307,7 @@ function create_drag_target_from_card(_card)
             end
 
             -- is the card in the jokers/consumeables area?
-            if _card.area and (_card.area == G.jokers or _card.area == G.consumeables) then
+            if _card.area and (_card.area == G.jokers or _card.area == G.consumeables) and not is_corpus then
                 local sell_loc = copy_table(localize('ml_sell_target'))
                 sell_loc[#sell_loc + 1] = '$' .. (_card.facing == 'back' and '?' or _card.sell_cost)
                 drag_target({
@@ -325,6 +321,24 @@ function create_drag_target_from_card(_card)
                     release_func = (function(other)
                         G.FUNCS.sell_card { config = { ref_table = other } }
                     end)
+                })
+                if _card.area == G.consumeables then
+                    draw_consumeable_use_target()
+                end
+            end
+
+            -- 'The Corpus' (Ortalab)
+            if Ortalab and _card.area and _card.area == G.consumeables and is_corpus then
+                local sell_loc = copy_table(localize('ml_sell_target'))
+                sell_loc[#sell_loc + 1] = '$' .. (_card.facing == 'back' and '?' or _card.sell_cost)
+                -- "Sacrifice" area.
+                drag_target({
+                    cover        = G.DRAG_TARGETS.O_sacrifice,
+                    colour       = adjust_alpha(G.ARGS.LOC_COLOURS.ortalab_mythos, 0.9),
+                    text         = { localize('ortalab_corpus_sacrifice') },
+                    text_colour = (G.C.RED),
+                    card         = _card,
+   
                 })
                 if _card.area == G.consumeables then
                     draw_consumeable_use_target()
