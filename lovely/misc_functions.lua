@@ -1,22 +1,3 @@
----debug delete on release---
-local success, dpAPI = pcall(require, "debugplus-api")
-
-local logger = { -- Placeholder logger, for when DebugPlus isn't available
-    log = print,
-    debug = print,
-    info = print,
-    warn = print,
-    error = print
-}
-
-if success and dpAPI.isVersionCompatible(1) then -- Make sure DebugPlus is available and compatible
-    local debugplus = dpAPI.registerID("eramdam.sticky-fingers")
-    logger = debugplus.logger -- Provides the logger object
-end
-
-logger.log("DebugPlus sticky-fingers logger")
----debug delete on release---
-
 debug_current_card = {}
 function create_drag_target_from_card(_card)
     if _card and G.STAGE == G.STAGES.RUN then
