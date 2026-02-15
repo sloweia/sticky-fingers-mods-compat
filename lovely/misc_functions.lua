@@ -1,41 +1,7 @@
----debug delete on release---
-local success, dpAPI = pcall(require, "debugplus-api")
-
-local logger = { -- Placeholder logger, for when DebugPlus isn't available
-    log = print,
-    debug = print,
-    info = print,
-    warn = print,
-    error = print
-}
-
-if success and dpAPI.isVersionCompatible(1) then -- Make sure DebugPlus is available and compatible
-    local debugplus = dpAPI.registerID("eramdam.sticky-fingers")
-    logger = debugplus.logger -- Provides the logger object
-end
-
-logger.log("DebugPlus sticky-fingers logger")
----debug delete on release---
-
 debug_current_card = {}
 function create_drag_target_from_card(_card)
     if _card and G.STAGE == G.STAGES.RUN then
         debug_current_card = _card
-
-        -- Category definitions --
-        local is_planet = _card.ability.set == 'Planet'
-        local is_spectral = _card.ability.set == 'Spectral'
-        local is_mythos = _card.ability.set == 'ortalab_mythos'
-        local is_corpus = _card.ability.set == 'ortalab_mythos' and _card.config.center.key == 'c_ortalab_corpus'
-        local is_zodiac = _card.ability.set == 'ortalab_zodiac'
-        local is_collectable = _card.ability.set == 'collectable'
-        local is_horoscope = _card.ability.set == 'Horoscope' or _card.config.center.key == 'c_mxms_ophiucus'  
-        local is_auxiliary = _card.ability.set == 'Auxiliary'
-        local is_auxiliary_use = _card.ability.set == 'Auxiliary' and (_card.config.center.key =='c_unstb_aux_lottery' or _card.config.center.key =='c_unstb_aux_blank' or _card.config.center.key =='c_unstb_aux_dark_matter' or _card.config.center.key =='c_unstb_aux_random')
-        local is_alchemical = _card.ability.set == 'Alchemical'
-        local is_travel = _card.ability.set == 'Travel'
-        local is_silly = _card.ability.set == 'Silly'
-        local is_cine = _card.ability.set == 'Cine'
 
         G.DRAG_TARGETS = G.DRAG_TARGETS or {
             S_buy = Moveable { T = { x = G.jokers.T.x, y = G.jokers.T.y - 0.1, w = G.consumeables.T.x + G.consumeables.T.w - G.jokers.T.x, h = G.jokers.T.h + 0.6 } },
@@ -126,7 +92,22 @@ function create_drag_target_from_card(_card)
 
             -- is the card in a pack?
             if _card.area == G.pack_cards then
+
+                -- Category definitions --
             local is_consumeable_card_in_crazy_reverie_pack = Reverie and SMODS.OPENED_BOOSTER.label == 'Pack' and _card.ability.consumeable and _card.area == G.pack_cards
+            local is_planet = _card.ability.set == 'Planet'
+            local is_spectral = _card.ability.set == 'Spectral'
+            local is_mythos = _card.ability.set == 'ortalab_mythos'
+            local is_zodiac = _card.ability.set == 'ortalab_zodiac'
+            local is_collectable = _card.ability.set == 'collectable'
+            local is_horoscope = _card.ability.set == 'Horoscope' or _card.config.center.key == 'c_mxms_ophiucus'  
+            local is_auxiliary = _card.ability.set == 'Auxiliary'
+            local is_auxiliary_use = _card.ability.set == 'Auxiliary' and (_card.config.center.key =='c_unstb_aux_lottery' or _card.config.center.key =='c_unstb_aux_blank' or _card.config.center.key =='c_unstb_aux_dark_matter' or _card.config.center.key =='c_unstb_aux_random')
+            local is_alchemical = _card.ability.set == 'Alchemical'
+            local is_travel = _card.ability.set == 'Travel'
+            local is_silly = _card.ability.set == 'Silly'
+            local is_cine = _card.ability.set == 'Cine'
+
                 -- is the card a consumeable?
                 -- rewrite this mess
                 if _card.ability.consumeable then
@@ -307,7 +288,7 @@ function create_drag_target_from_card(_card)
             end
 
             -- is the card in the jokers/consumeables area?
-            if _card.area and (_card.area == G.jokers or _card.area == G.consumeables) and not is_corpus then
+            if _card.area and (_card.area == G.jokers or _card.area == G.consumeables) and not (_card.ability.set == 'ortalab_mythos' and _card.config.center.key == 'c_ortalab_corpus') then
                 local sell_loc = copy_table(localize('ml_sell_target'))
                 sell_loc[#sell_loc + 1] = '$' .. (_card.facing == 'back' and '?' or _card.sell_cost)
                 drag_target({
@@ -328,7 +309,7 @@ function create_drag_target_from_card(_card)
             end
 
             -- 'The Corpus' (Ortalab)
-            if Ortalab and _card.area and _card.area == G.consumeables and is_corpus then
+            if Ortalab and _card.area and _card.area == G.consumeables and _card.ability.consumeable and (_card.ability.set == 'ortalab_mythos' and _card.config.center.key == 'c_ortalab_corpus') then
                 local sell_loc = copy_table(localize('ml_sell_target'))
                 sell_loc[#sell_loc + 1] = '$' .. (_card.facing == 'back' and '?' or _card.sell_cost)
                 -- "Sacrifice" area.
@@ -336,9 +317,16 @@ function create_drag_target_from_card(_card)
                     cover        = G.DRAG_TARGETS.O_sacrifice,
                     colour       = adjust_alpha(G.ARGS.LOC_COLOURS.ortalab_mythos, 0.9),
                     text         = { localize('ortalab_corpus_sacrifice') },
-                    text_colour = (G.C.RED),
+                    text_colour = (G.C.YELLOW),
                     card         = _card,
-   
+                    active_check = (function(other)
+                            return sticky_can_sacrifice_card(other)
+                        end),
+                        release_func = (function(other)
+                            if sticky_can_sacrifice_card(other) then
+                                G.FUNCS.sacrifice_card({ config = { ref_table = other } })
+                            end
+                        end)
                 })
                 if _card.area == G.consumeables then
                     draw_consumeable_use_target()
@@ -380,7 +368,7 @@ function create_drag_target_from_card(_card)
 
             -- 'Horoscope' (Maximus) cards inside their own area.
             if _card.area and _card.area == G.mxms_horoscope and _card.ability.consumeable and
-                _card.ability.set == 'Horoscope' or _card.area and _card.area == G.mxms_horoscope and _card.ability.consumeable and _card.config.center.key == 'c_mxms_ophiucus' then
+                (_card.ability.set == 'Horoscope' or _card.config.center.key == 'c_mxms_ophiucus') then
                 local sell_loc = copy_table(localize('ml_sell_target'))
                 sell_loc[#sell_loc + 1] = '$' .. (_card.facing == 'back' and '?' or _card.sell_cost)
                 -- "Sell" target.
@@ -493,5 +481,11 @@ end
 sticky_can_select_crazy_card = function(_card)
     local temp_config = { UIBox = { states = { visible = false } }, config = { ref_table = _card } }
     G.FUNCS.can_select_crazy_card(temp_config)
+    return temp_config.config.button ~= nil;
+end
+
+sticky_can_sacrifice_card = function(_card)
+    local temp_config = { UIBox = { states = { visible = false } }, config = { ref_table = _card } }
+    G.FUNCS.can_sacrifice_card(temp_config)
     return temp_config.config.button ~= nil;
 end
